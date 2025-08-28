@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐺 Silent Wolf – Session Generator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Share+Tech+Mono&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Share Tech Mono', monospace;
+      background: radial-gradient(circle at top, #0d0d0d, #000000 90%);
+      color: #0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      text-transform: uppercase;
+      color: #00ff00;
+      text-shadow: 0 0 10px #0f0, 0 0 20px #00ff00, 0 0 40px #00ff88;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: rgba(0, 255, 0, 0.05);
+      border: 2px solid #0f0;
+      border-radius: 15px;
+      padding: 20px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+      backdrop-filter: blur(8px);
+    }
+
+    input {
+      width: 90%;
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 15px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    button {
+      background: #00ff00;
+      border: none;
+      color: #000;
+      font-size: 1rem;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    button:hover {
+      background: #33ff33;
+      box-shadow: 0 0 10px #0f0, 0 0 20px #00ff00;
+    }
+
+    #qr-container {
+      margin-top: 20px;
+    }
+
+    #qr-container img {
+      border: 3px solid #0f0;
+      border-radius: 12px;
+      padding: 10px;
+      background: #000;
+      box-shadow: 0 0 25px #00ff00;
+    }
+
+    .loading-bar {
+      margin-top: 15px;
+      width: 90%;
+      height: 12px;
+      background: rgba(0, 255, 0, 0.1);
+      border: 2px solid #0f0;
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .loading-bar-inner {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #00ff00, #66ff66, #00ff00);
+      animation: loading 2s infinite linear;
+      box-shadow: 0 0 15px #0f0;
+    }
+
+    @keyframes loading {
+      0% { width: 0; }
+      50% { width: 100%; }
+      100% { width: 0; }
+    }
+
+    footer {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.9rem;
+      color: #00ff00;
+      text-shadow: 0 0 5px #0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐺 Silent Wolf Session Generator</h1>
+  <div class="card">
+    <input type="text" id="number" placeholder="Enter WhatsApp number (e.g., 2547XXXXXXX)">
+    <button onclick="generateQR()">Generate Session</button>
+    
+    <!-- Loading bar -->
+    <div class="loading-bar" id="loading-bar">
+      <div class="loading-bar-inner"></div>
+    </div>
+
+    <div id="qr-container"></div>
+  </div>
+  <footer>⚡ Powered by Silent Wolf Bot</footer>
+
+  <script>
+    async function generateQR() {
+      const number = document.getElementById("number").value.trim();
+      if (!number) {
+        alert("Please enter your WhatsApp number!");
+        return;
+      }
+
+      const loadingBar = document.getElementById("loading-bar");
+      const qrContainer = document.getElementById("qr-container");
+
+      // Show loading bar
+      loadingBar.style.display = "block";
+      qrContainer.innerHTML = "";
+
+      const response = await fetch("/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number })
+      });
+
+      const data = await response.json();
+
+      // Hide loading bar
+      loadingBar.style.display = "none";
+
+      if (data.qr) {
+        const img = document.createElement("img");
+        img.src = data.qr;
+        img.alt = "QR Code";
+        qrContainer.appendChild(img);
+      } else {
+        qrContainer.innerHTML = "<p style='color:red'>❌ Failed to generate QR</p>";
+      }
+    }
+  </script>
+</body>
+</html>
