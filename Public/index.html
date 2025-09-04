@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,6 +20,16 @@
       justify-content: center;
       height: 100vh;
       overflow: hidden;
+      position: relative;
+    }
+
+    canvas#bgCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
     }
 
     h1 {
@@ -28,6 +39,8 @@
       color: #00ff00;
       text-shadow: 0 0 10px #0f0, 0 0 20px #00ff00, 0 0 40px #00ff88;
       margin-bottom: 20px;
+      z-index: 1;
+      position: relative;
     }
 
     .card {
@@ -39,6 +52,8 @@
       text-align: center;
       box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
       backdrop-filter: blur(8px);
+      z-index: 1;
+      position: relative;
     }
 
     input {
@@ -113,10 +128,13 @@
       font-size: 0.9rem;
       color: #00ff00;
       text-shadow: 0 0 5px #0f0;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
+  <canvas id="bgCanvas"></canvas>
+
   <h1>🐺 Silent Wolf Session Generator</h1>
   <div class="card">
     <input type="text" id="number" placeholder="Enter WhatsApp number (e.g., 2547XXXXXXX)">
@@ -166,6 +184,47 @@
         qrContainer.innerHTML = "<p style='color:red'>❌ Failed to generate QR</p>";
       }
     }
+
+    // Background floating "Silent Wolf" effect
+    const canvas = document.getElementById("bgCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const words = [];
+    for (let i = 0; i < 50; i++) {
+      words.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        speed: 0.2 + Math.random() * 0.5,
+        size: 12 + Math.random() * 10
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(0,255,0,0.7)";
+      ctx.font = "bold 12px 'Share Tech Mono', monospace";
+
+      words.forEach(word => {
+        ctx.font = `bold ${word.size}px 'Share Tech Mono', monospace`;
+        ctx.fillText("Silent Wolf", word.x, word.y);
+        word.y -= word.speed;
+        if (word.y < -20) {
+          word.y = canvas.height + 20;
+          word.x = Math.random() * canvas.width;
+        }
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
   </script>
 </body>
 </html>
