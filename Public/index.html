@@ -233,7 +233,7 @@
         ctx.fillText("Silent Wolf", word.x, word.y);
         word.y -= word.speed;
         if (word.y < -20) {
-          word.y = canvas.height + 20;
+          word.y = canvas.height + 30;
           word.x = Math.random() * canvas.width;
         }
       });

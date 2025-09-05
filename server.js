@@ -1,14 +1,11 @@
 
-
-
-
-
 // import express from 'express';
 // import bodyParser from 'body-parser';
 // import QRCode from 'qrcode';
 // import fs from 'fs';
 // import path from 'path';
 // import baileys from '@whiskeysockets/baileys';
+// import crypto from 'crypto';
 
 // const { makeWASocket, fetchLatestBaileysVersion, useMultiFileAuthState } = baileys;
 
@@ -24,17 +21,18 @@
 //   fs.mkdirSync(sessionsDir, { recursive: true });
 // }
 
-// // Generate short unique session ID starting with SilentWolf
-// function generateShortSession() {
-//   const randomPart = Math.random().toString(36).substring(2, 8); // 6 random chars
-//   const timestamp = Date.now().toString(36); // unique timestamp
-//   return `SilentWolf-${timestamp}-${randomPart}`;
+// // Generate a long session (~1 page) starting with SilentWolf
+// function generateLongSession() {
+//   const prefix = 'SilentWolf-';
+//   // Generate 1024 random bytes and encode in Base64 (will be ~1368 chars)
+//   const randomBytes = crypto.randomBytes(1024).toString('base64');
+//   return `${prefix}${randomBytes}`;
 // }
 
 // async function startSession(number) {
 //   const sessionFolder = path.join(sessionsDir, number);
 //   if (!fs.existsSync(sessionFolder)) {
-//     fs.mkdirSync(sessionFolder, { recursive: true }); // ✅ fix ENOENT error
+//     fs.mkdirSync(sessionFolder, { recursive: true });
 //   }
 
 //   const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
@@ -45,7 +43,7 @@
 //   return new Promise((resolve, reject) => {
 //     let qrSent = false;
 //     let sessionSent = false;
-//     const shortSession = generateShortSession();
+//     const longSession = generateLongSession();
 
 //     sock.ev.on('connection.update', async (update) => {
 //       const { qr, connection, lastDisconnect } = update;
@@ -55,14 +53,14 @@
 //         try {
 //           const qrImage = await QRCode.toDataURL(qr);
 //           qrSent = true;
-//           resolve({ qr: qrImage, session: shortSession }); // return QR + short session
+//           resolve({ qr: qrImage, session: longSession });
 //         } catch (err) {
 //           console.error('❌ QR generation failed', err);
 //           reject(err);
 //         }
 //       }
 
-//       // 2️⃣ When connection opens, try sending short session to WhatsApp
+//       // 2️⃣ When connection opens, try sending long session to WhatsApp
 //       if (connection === 'open' && !sessionSent) {
 //         console.log(`✅ WhatsApp connected for ${number}`);
 //         await saveCreds();
@@ -70,11 +68,11 @@
 //         const userJid = number.includes('@s.whatsapp.net') ? number : `${number}@s.whatsapp.net`;
 //         try {
 //           await sock.sendMessage(userJid, {
-//             text: `🐺 Silent Wolf Session Generated ✅\n\nYour short session ID:\n\n${shortSession}`
+//             text: `🐺 Silent Wolf Session Generated ✅\n\nYour long session ID:\n\n${longSession}`
 //           });
-//           console.log('📩 Short session sent to user DM!');
+//           console.log('📩 Long session sent to user DM!');
 //         } catch (err) {
-//           console.log('❌ Could not send short session automatically. User must message the bot first.', err);
+//           console.log('❌ Could not send session automatically. User must message the bot first.', err);
 //         }
 
 //         sessionSent = true;
@@ -109,6 +107,7 @@
 // app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
 
 
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import QRCode from 'qrcode';
@@ -121,12 +120,15 @@ const { makeWASocket, fetchLatestBaileysVersion, useMultiFileAuthState } = baile
 
 const app = express();
 app.use(bodyParser.json());
-app.use(express.static('public'));
 
-const PORT = 5000;
+// ✅ Serve static files from /public
+const __dirname = process.cwd();
+app.use(express.static(path.join(__dirname, 'public')));
+
+const PORT = process.env.PORT || 5000;
 
 // Sessions folder
-const sessionsDir = path.join(process.cwd(), 'sessions');
+const sessionsDir = path.join(__dirname, 'sessions');
 if (!fs.existsSync(sessionsDir)) {
   fs.mkdirSync(sessionsDir, { recursive: true });
 }
@@ -200,7 +202,12 @@ async function startSession(number) {
   });
 }
 
-// API endpoint
+// ✅ Route to serve index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ✅ API endpoint
 app.post('/generate', async (req, res) => {
   const { number } = req.body;
   if (!number) return res.status(400).json({ error: 'Please provide a WhatsApp number' });
