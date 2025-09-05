@@ -123,7 +123,7 @@ app.use(bodyParser.json());
 
 // ✅ Serve static files from /public
 const __dirname = process.cwd();
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'Public')));
 
 const PORT = process.env.PORT || 5000;
 
